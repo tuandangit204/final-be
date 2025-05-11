@@ -1,6 +1,6 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv'
 
-dotenv.config();
+dotenv.config()
 
 export const firebaseAdminConfig = {
     type: process.env.GOOGLE_TYPE,
@@ -13,5 +13,5 @@ export const firebaseAdminConfig = {
     token_uri: process.env.GOOGLE_TOKEN_URI,
     auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
     client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL,
-    universe_domain: process.env.GOOGLE_UNIVERSE_DOMAIN,
-};
+    universe_domain: process.env.GOOGLE_UNIVERSE_DOMAIN
+}
