@@ -1,15 +1,7 @@
-import { NextFunction, Request, Response } from 'express'
-import jwt, { JwtPayload } from 'jsonwebtoken'
 import dotenv from 'dotenv'
-
-// Extend Express Request interface to include 'user'
-
-declare module 'express-serve-static-core' {
-    interface Request {
-        user?: string | JwtPayload
-    }
-}
-
+import { NextFunction, Request, Response } from 'express'
+import jwt from 'jsonwebtoken'
+import { IUserPayload } from '~/types/ICommon'
 dotenv.config()
 
 export const authentication = async (req: Request, res: Response, next: NextFunction) => {
@@ -29,7 +21,7 @@ export const authentication = async (req: Request, res: Response, next: NextFunc
 
         const token = authHeader.split(' ')[1]
 
-        const decoded = jwt.verify(token, jwtSecret)
+        const decoded = jwt.verify(token, jwtSecret) as IUserPayload
 
         req.user = decoded
 

@@ -1,39 +1,9 @@
 import { Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
+import RefreshToken from '~/db/models/refreshTokenModel'
 import User from '~/db/models/userModel'
 import { getResponse } from '~/utils/common'
-import { ICreateUser, ILgoutUser, ILoginUser } from './type'
-import RefreshToken from '~/db/models/refreshTokenModel'
-
-export const createUser = async (req: Request<unknown, unknown, ICreateUser>, res: Response) => {
-    try {
-        const { loginName, password, firstName, lastName, description, location, occupation } = req.body
-
-        const user = await User.findOne({ loginName })
-
-        if (user) {
-            res.status(400).json({ message: 'User already exists' })
-            return
-        }
-
-        const newUser = new User({
-            loginName,
-            password,
-            firstName,
-            lastName,
-            description,
-            location,
-            occupation
-        })
-
-        newUser.save()
-
-        res.status(201).json({ message: 'User created successfully' })
-    } catch (e) {
-        console.error('Error creating user:', e)
-        res.status(500).json({ message: 'Internal server error' })
-    }
-}
+import { ILgoutUser, ILoginUser } from './type'
 
 export const login = async (req: Request<unknown, unknown, ILoginUser>, res: Response) => {
     try {
