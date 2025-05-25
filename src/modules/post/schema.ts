@@ -8,3 +8,10 @@ export const createPostSchema = Joi.object({
 export const findOnePostSchema = Joi.object({
     id: Joi.string().required().id()
 })
+
+export const getPostByConditionSchema = Joi.object({
+    title: Joi.string().optional().max(100),
+    authorId: Joi.string().optional().id(),
+    page: Joi.number().optional().default(1),
+    limit: Joi.number().optional().default(1000)
+})

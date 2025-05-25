@@ -59,3 +59,54 @@ export const findOne = async (req: Request, res: Response) => {
         )
     }
 }
+
+export const getPostByCondition = async (req: Request, res: Response) => {
+    try {
+        const { title, authorId, page = 1, limit = 1000 } = req.query
+
+        // Xây dựng filter object động
+        const filter: any = {}
+
+        if (title) {
+            filter.title = { $regex: title, $options: 'i' } // Tìm kiếm không phân biệt hoa thường
+        }
+
+        if (authorId) {
+            filter.userId = authorId
+        }
+
+        // Tính toán pagination
+        const pageNum = parseInt(page as string)
+        const limitNum = parseInt(limit as string)
+        const skip = (pageNum - 1) * limitNum
+
+        // Thực hiện query với populate author info
+        const posts = await Post.find(filter)
+            .populate('userId', 'firstName lastName loginName') // Lấy thông tin author
+            .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo mới nhất
+            .skip(skip)
+            .limit(limitNum)
+
+        // Đếm tổng số documents để tính pagination
+        const total = await Post.countDocuments(filter)
+
+        res.status(200).json(
+            getResponse({
+                message: 'Posts retrieved successfully',
+                data: {
+                    posts: posts.map(post => post.toJSON()),
+                    total,
+                    page: pageNum,
+                    limit: limitNum
+                }
+            })
+        )
+    } catch (e) {
+        console.error('Error getting posts by condition:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
+}
