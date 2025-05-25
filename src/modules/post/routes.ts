@@ -1,12 +1,11 @@
 import { Router } from 'express'
-import { validateBody, validateQuery } from '~/middlewares/validation'
-import { createPostSchema, getPostsSchema, updatePostSchema } from './schema'
-import { createPost, getPosts, updatePost } from './controller'
+import { authentication } from '~/middlewares/auth'
+import { createPost } from './controller'
+import { validateBody } from '~/middlewares/validation'
+import { createPostSchema } from './schema'
 
 const postRoutes = Router()
 
-postRoutes.post('/', validateBody(createPostSchema), createPost)
-postRoutes.put('/', validateBody(updatePostSchema), updatePost)
-postRoutes.get('/', validateQuery(getPostsSchema), getPosts)
+postRoutes.post('/', authentication, validateBody(createPostSchema), createPost)
 
 export default postRoutes
