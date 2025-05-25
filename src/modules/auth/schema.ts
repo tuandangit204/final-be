@@ -9,6 +9,10 @@ export const logoutUserSchema = Joi.object({
     refreshToken: Joi.string().required()
 })
 
+export const refreshTokenSchema = Joi.object({
+    refreshToken: Joi.string().required()
+})
+
 export const changePasswordSchema = Joi.object({
     oldPassword: Joi.string().min(8).required(),
     newPassword: Joi.string().min(8).required()

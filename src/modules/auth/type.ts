@@ -8,3 +8,7 @@ export interface ILoginUser {
 export interface ILgoutUser {
     refreshToken: string
 }
+
+export interface IRefreshTokenRequest {
+    refreshToken: string
+}
