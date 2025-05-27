@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
-import { ICreatePost } from './type'
 import Post from '~/db/models/postModel'
 import { getResponse } from '~/utils/common'
+import { ICreatePost } from './type'
+import omit from 'lodash/omit'
 
 export const createPost = async (req: Request<unknown, unknown, ICreatePost>, res: Response) => {
     try {
@@ -94,7 +95,14 @@ export const getPostByCondition = async (req: Request, res: Response) => {
             getResponse({
                 message: 'Posts retrieved successfully',
                 data: {
-                    posts: posts.map(post => post.toJSON()),
+                    data: posts.map((post) => {
+                        const postData = post.toJSON()
+
+                        return {
+                            ...omit(postData, ['userId']),
+                            author: postData.userId
+                        }
+                    }),
                     total,
                     page: pageNum,
                     limit: limitNum
@@ -103,6 +111,89 @@ export const getPostByCondition = async (req: Request, res: Response) => {
         )
     } catch (e) {
         console.error('Error getting posts by condition:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
+}
+
+export const likePost = async (req: Request, res: Response) => {
+    try {
+        const postId = req.params.id
+        const userId = req.user?.id as string
+
+        const post = await Post.findById(postId)
+
+        if (!post) {
+            res.status(404).json(
+                getResponse({
+                    message: 'Post not found'
+                })
+            )
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const alreadyLiked = post?.likes?.includes(userId)
+
+        if (!alreadyLiked) {
+            await post?.updateOne({
+                $push: { likes: userId }
+            })
+        }
+
+        res.status(200).json(
+            getResponse({
+                message: 'Post liked successfully',
+                data: true
+            })
+        )
+    } catch (e) {
+        console.error('Error liking post:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
+}
+
+export const unLikePost = async (req: Request, res: Response) => {
+    try {
+        const postId = req.params.id
+        const userId = req.user?.id as string
+
+        const post = await Post.findById(postId)
+
+        if (!post) {
+            res.status(404).json(
+                getResponse({
+                    message: 'Post not found'
+                })
+            )
+            return
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const alreadyLiked = post?.likes?.includes(userId)
+
+        if (alreadyLiked) {
+            await post?.updateOne({
+                $pull: { likes: userId }
+            })
+        }
+
+        res.status(200).json(
+            getResponse({
+                message: 'Post unliked successfully',
+                data: true
+            })
+        )
+    } catch (e) {
+        console.error('Error unliking post:', e)
         res.status(500).json(
             getResponse({
                 message: 'Internal server error'

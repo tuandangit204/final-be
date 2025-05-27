@@ -121,3 +121,34 @@ export const refreshToken = async (req: Request, res: Response) => {
         )
     }
 }
+
+export const getUserInfo = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id
+
+        const user = await User.findById(userId)
+
+        if (!user) {
+            res.status(404).json(
+                getResponse({
+                    message: 'User not found'
+                })
+            )
+            return
+        }
+
+        res.status(200).json(
+            getResponse({
+                message: 'User info retrieved successfully',
+                data: user.toJSON()
+            })
+        )
+    } catch (e) {
+        console.error('Error getting user info:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Failed to get user info'
+            })
+        )
+    }
+}

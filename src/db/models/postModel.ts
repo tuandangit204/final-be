@@ -4,11 +4,13 @@ export interface IPost extends Document {
     title: string
     imageUrl: string
     userId: mongoose.Types.ObjectId
+    likes?: mongoose.Types.ObjectId[]
+    commentCount?: number
     createdAt: Date
     updatedAt: Date
 }
 
-// Schema định nghĩa cấu trúc collection
+
 const postSchema = new Schema<IPost>(
     {
         title: {
@@ -26,11 +28,20 @@ const postSchema = new Schema<IPost>(
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
-            ref: 'User' // Liên kết với model User
+            ref: 'User'
+        },
+        likes: {
+            type: [mongoose.Schema.Types.ObjectId],
+            default: [],
+            ref: 'User'
+        },
+        commentCount: {
+            type: Number,
+            default: 0
         }
     },
     {
-        timestamps: true, // Tự động tạo createdAt và updatedAt
+        timestamps: true,
         versionKey: false
     }
 )
