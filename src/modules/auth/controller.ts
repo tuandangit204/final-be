@@ -5,6 +5,10 @@ import User from '~/db/models/userModel'
 import { getResponse } from '~/utils/common'
 import { sendVerifyEmail } from '~/utils/sendMail'
 import { ILgoutUser, ILoginUser } from './type'
+import VerifyToken from '~/db/models/verifyTokenModel'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export const login = async (req: Request<unknown, unknown, ILoginUser>, res: Response) => {
     try {
@@ -166,4 +170,43 @@ export const testMail = async (req: Request, res: Response) => {
             message: 'Test mail sent successfully'
         })
     )
+}
+
+export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+
+        const verifyToken = uuidv4()
+
+        const expiredAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+
+        const verifyTokenDoc = await VerifyToken.create({
+            email,
+            token: verifyToken,
+            expiredAt
+        })
+
+        verifyTokenDoc.save()
+
+        const verifyLink = `${process.env.APP_URL}/auth/verify-email?token=${verifyToken}`
+
+        await sendVerifyEmail({
+            email,
+            name: 'User',
+            verifyLink
+        })
+
+        res.status(200).json(
+            getResponse({
+                message: 'Verification email sent successfully'
+            })
+        )
+    } catch (e) {
+        console.error('Error sending verification email:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Failed to send verification email'
+            })
+        )
+    }
 }

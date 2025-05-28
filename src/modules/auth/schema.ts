@@ -22,3 +22,7 @@ export const resetPasswordSchema = Joi.object({
     loginName: Joi.string().min(3).max(30).required(),
     newPassword: Joi.string().min(8).required()
 })
+
+export const sendVerifyEmailSchema = Joi.object({
+    email: Joi.string().email().required()
+})
