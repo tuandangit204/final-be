@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from 'uuid'
 import RefreshToken from '~/db/models/refreshTokenModel'
 import User from '~/db/models/userModel'
 import { getResponse } from '~/utils/common'
+import { sendVerifyEmail } from '~/utils/sendMail'
 import { ILgoutUser, ILoginUser } from './type'
-import { mailOptionsHtml, transporter } from '~/utils/sendMail'
 
 export const login = async (req: Request<unknown, unknown, ILoginUser>, res: Response) => {
     try {
@@ -155,15 +155,15 @@ export const getUserInfo = async (req: Request, res: Response) => {
 }
 
 export const testMail = async (req: Request, res: Response) => {
-
-    transporter.sendMail(mailOptionsHtml, (error, info) => {
-        if (error) {
-            console.error('Error sending email:', error)
-            res.status(500).json({ message: 'Failed to send email' })
-            return
-        }
-        console.log('Email sent:', info.response)
+    await sendVerifyEmail({
+        email: 'tuandangit2004@gmail.com',
+        name: 'Tuấn Đăng',
+        verifyLink: 'https://www.facebook.com/'
     })
 
-    res.status(200).json('ok')
+    res.status(200).json(
+        getResponse({
+            message: 'Test mail sent successfully'
+        })
+    )
 }
