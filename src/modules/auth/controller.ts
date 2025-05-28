@@ -213,3 +213,55 @@ export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
         )
     }
 }
+
+export const createUser = async (req: Request, res: Response) => {
+    try {
+        const { token, loginName, password, firstName, lastName, description, location, occupation } = req.body
+
+        const tokenDoc = await VerifyToken.findOne({ token })
+
+        if (!tokenDoc || tokenDoc.expiredAt < new Date()) {
+            res.status(400).json(
+                getResponse({
+                    message: 'Token is invalid!'
+                })
+            )
+
+            return
+        }
+
+        const user = await User.findOne({ loginName })
+
+        if (user) {
+            res.status(400).json(
+                getResponse({
+                    message: 'User name is existed!'
+                })
+            )
+
+            return
+        }
+
+        const newUser = new User({
+            email: tokenDoc.email,
+            loginName,
+            password,
+            firstName,
+            lastName,
+            description,
+            location,
+            occupation
+        })
+
+        newUser.save()
+
+        res.status(201).json({ message: 'User created successfully' })
+    } catch (e) {
+        console.log('Error creating user:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Failed to create user'
+            })
+        )
+    }
+}

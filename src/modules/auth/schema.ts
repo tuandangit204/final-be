@@ -26,3 +26,14 @@ export const resetPasswordSchema = Joi.object({
 export const sendVerifyEmailSchema = Joi.object({
     email: Joi.string().email().required()
 })
+
+export const createUserSchema = Joi.object({
+    token: Joi.string().required(),
+    loginName: Joi.string().min(3).max(30).required(),
+    password: Joi.string().min(8).required(),
+    firstName: Joi.string().min(1).max(50).required(),
+    lastName: Joi.string().min(1).max(50).required(),
+    description: Joi.string().max(500).optional().allow(''),
+    location: Joi.string().max(100).optional().allow(''),
+    occupation: Joi.string().max(100).optional().allow('')
+})
