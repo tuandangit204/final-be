@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import RefreshToken from '~/db/models/refreshTokenModel'
 import User from '~/db/models/userModel'
-import { getResponse } from '~/utils/common'
+import { getResponse, isEmail } from '~/utils/common'
 import { sendVerifyEmail } from '~/utils/sendMail'
 import { ILgoutUser, ILoginUser } from './type'
 import VerifyToken from '~/db/models/verifyTokenModel'
@@ -14,7 +14,13 @@ export const login = async (req: Request<unknown, unknown, ILoginUser>, res: Res
     try {
         const { loginName, password } = req.body
 
-        const user = await User.findOne({ loginName })
+        let user
+
+        if (isEmail(loginName)) {
+            user = await User.findOne({ email: loginName })
+        } else {
+            user = await User.findOne({ loginName })
+        }
 
         if (!user) {
             res.status(400).json({ message: 'User name or password is invalid' })
@@ -158,23 +164,20 @@ export const getUserInfo = async (req: Request, res: Response) => {
     }
 }
 
-export const testMail = async (req: Request, res: Response) => {
-    await sendVerifyEmail({
-        email: 'tuandangit2004@gmail.com',
-        name: 'Tuấn Đăng',
-        verifyLink: 'https://www.facebook.com/'
-    })
-
-    res.status(200).json(
-        getResponse({
-            message: 'Test mail sent successfully'
-        })
-    )
-}
-
 export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
     try {
-        const { email } = req.body;
+        const { email } = req.body
+
+        const user = await User.findOne({ email })
+
+        if (user) {
+            res.status(400).json(
+                getResponse({
+                    message: 'Email already registered'
+                })
+            )
+            return
+        }
 
         const verifyToken = uuidv4()
 
@@ -188,7 +191,7 @@ export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
 
         verifyTokenDoc.save()
 
-        const verifyLink = `${process.env.APP_URL}/auth/verify-email?token=${verifyToken}`
+        const verifyLink = `${process.env.FE_APP_URL}/auth/register/create?token=${verifyToken}`
 
         await sendVerifyEmail({
             email,

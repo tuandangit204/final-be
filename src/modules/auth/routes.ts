@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { validateBody } from '~/middlewares/validation'
-import { getUserInfo, login, logout, refreshToken, sendVerifyEmailHandler, testMail } from './controller'
-import { loginUserSchema, logoutUserSchema, refreshTokenSchema, sendVerifyEmailSchema } from './schema'
 import { authentication } from '~/middlewares/auth'
+import { validateBody } from '~/middlewares/validation'
+import { getUserInfo, login, logout, refreshToken, sendVerifyEmailHandler } from './controller'
+import { loginUserSchema, logoutUserSchema, refreshTokenSchema, sendVerifyEmailSchema } from './schema'
 
 const authRoutes = Router()
 

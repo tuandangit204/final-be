@@ -30,6 +30,8 @@ const verifyTokenSchema = new Schema<IVerifyToken>(
     }
 )
 
+verifyTokenSchema.index({ token: 1 })
+
 const VerifyToken = mongoose.model<IVerifyToken>('VerifyToken', verifyTokenSchema)
 
 export default VerifyToken

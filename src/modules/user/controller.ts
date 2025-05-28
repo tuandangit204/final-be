@@ -7,9 +7,9 @@ import { omit } from 'lodash'
 
 export const createUser = async (req: Request<unknown, unknown, ICreateUser>, res: Response) => {
     try {
-        const { loginName, password, firstName, lastName, description, location, occupation } = req.body
+        const { email, loginName, password, firstName, lastName, description, location, occupation } = req.body
 
-        const user = await User.findOne({ loginName })
+        const user = await User.findOne({ email })
 
         if (user) {
             res.status(400).json({ message: 'User already exists' })
@@ -17,6 +17,7 @@ export const createUser = async (req: Request<unknown, unknown, ICreateUser>, re
         }
 
         const newUser = new User({
+            email,
             loginName,
             password,
             firstName,

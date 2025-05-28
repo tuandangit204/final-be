@@ -12,3 +12,8 @@ export const getResponse = <T>({ data = null, message }: IResponseParams<T>): IR
         data: data as T | null
     }
 }
+
+export const isEmail = (str: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(str)
+}

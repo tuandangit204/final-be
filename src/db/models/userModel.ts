@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 
 // Interface định nghĩa cấu trúc của User document
 export interface IUser extends Document {
+    email: string
     loginName: string
     password: string
     firstName: string
@@ -22,6 +23,13 @@ export interface IUser extends Document {
 // Schema định nghĩa cấu trúc collection
 const userSchema = new Schema<IUser>(
     {
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true
+        },
         loginName: {
             type: String,
             required: true,
@@ -92,7 +100,6 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
     return bcrypt.compare(candidatePassword, this.password)
 }
-
 
 // Method để tạo JWT access token
 userSchema.methods.genJWTAccessToken = function (): string {

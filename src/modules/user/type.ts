@@ -1,4 +1,5 @@
 export interface ICreateUser {
+    email: string
     loginName: string
     password: string
     firstName: string
