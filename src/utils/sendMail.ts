@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -11,6 +12,7 @@ const auth = {
 }
 
 const transporter = nodemailer.createTransport({
+    // @ts-ignore
     service: 'gmail',
     auth: auth
 })

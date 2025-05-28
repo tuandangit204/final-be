@@ -7,6 +7,7 @@ import { sendVerifyEmail } from '~/utils/sendMail'
 import { ILgoutUser, ILoginUser } from './type'
 import VerifyToken from '~/db/models/verifyTokenModel'
 import dotenv from 'dotenv'
+import { ErrorMessages } from '~/constants/common'
 
 dotenv.config()
 
@@ -173,7 +174,7 @@ export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
         if (user) {
             res.status(400).json(
                 getResponse({
-                    message: 'Email already registered'
+                    message: ErrorMessages.EMAIL_ALREADY_EXISTS
                 })
             )
             return
@@ -183,13 +184,20 @@ export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
 
         const expiredAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
 
-        const verifyTokenDoc = await VerifyToken.create({
-            email,
-            token: verifyToken,
-            expiredAt
-        })
+        const existingToken = await VerifyToken.findOne({ email })
 
-        verifyTokenDoc.save()
+        if (existingToken) {
+            existingToken.token = verifyToken
+            existingToken.expiredAt = expiredAt
+            await existingToken.save()
+        } else {
+            const verifyTokenDoc = await VerifyToken.create({
+                email,
+                token: verifyToken,
+                expiredAt
+            })
+            await verifyTokenDoc.save()
+        }
 
         const verifyLink = `${process.env.FE_APP_URL}/auth/register/create?token=${verifyToken}`
 
@@ -226,7 +234,6 @@ export const createUser = async (req: Request, res: Response) => {
                     message: 'Token is invalid!'
                 })
             )
-
             return
         }
 
@@ -235,10 +242,9 @@ export const createUser = async (req: Request, res: Response) => {
         if (user) {
             res.status(400).json(
                 getResponse({
-                    message: 'User name is existed!'
+                    message: ErrorMessages.LOGIN_NAME_ALREADY_EXISTS
                 })
             )
-
             return
         }
 
@@ -253,7 +259,9 @@ export const createUser = async (req: Request, res: Response) => {
             occupation
         })
 
-        newUser.save()
+        await newUser.save()
+
+        await VerifyToken.deleteOne({ _id: tokenDoc._id })
 
         res.status(201).json({ message: 'User created successfully' })
     } catch (e) {
