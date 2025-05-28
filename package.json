@@ -25,6 +25,7 @@
         "jsonwebtoken": "^9.0.2",
         "lodash": "^4.17.21",
         "mongoose": "^8.15.0",
+        "nodemailer": "^7.0.3",
         "uuid": "^11.1.0"
     },
     "devDependencies": {
@@ -37,6 +38,7 @@
         "@types/jsonwebtoken": "^9.0.9",
         "@types/lodash": "^4.17.17",
         "@types/node": "^22.15.17",
+        "@types/nodemailer": "^6.4.17",
         "eslint": "^9.26.0",
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-prettier": "^5.4.0",
