@@ -8,11 +8,12 @@ export const createPost = async (req: Request<unknown, unknown, ICreatePost>, re
     try {
         const user = req.user
 
-        const { title, imageUrl } = req.body
+        const { title, content, imageUrl } = req.body
 
         const post = new Post({
             title,
             imageUrl,
+            content,
             userId: user?.id as string
         })
 
