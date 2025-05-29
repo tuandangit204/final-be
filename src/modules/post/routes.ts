@@ -1,9 +1,9 @@
 import { Router } from 'express'
 import { authentication } from '~/middlewares/auth'
-import { validateBody, validateParams, validateQuery } from '~/middlewares/validation'
+import { validateBody, validateParams } from '~/middlewares/validation'
 import commentRoutes from '../comment/routes'
 import { createPost, findOne, getPostByCondition, likePost, unLikePost } from './controller'
-import { createPostSchema, findOnePostSchema, getPostByConditionSchema } from './schema'
+import { createPostSchema, findOnePostSchema } from './schema'
 
 const postRoutes = Router()
 
