@@ -5,7 +5,7 @@ import postRoutes from './modules/post/routes'
 import userRoutes from './modules/user/routes'
 import cors from 'cors'
 
-const PORT = 8080
+const PORT = 8001
 
 dbConnect()
 
