@@ -10,7 +10,6 @@ export interface IPost extends Document {
     updatedAt: Date
 }
 
-
 const postSchema = new Schema<IPost>(
     {
         title: {

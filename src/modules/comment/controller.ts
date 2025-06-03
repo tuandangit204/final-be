@@ -64,7 +64,7 @@ export const getCommentsByPostId = async (req: Request, res: Response) => {
         }
 
         const comments = await Comment.find({ postId })
-            .populate('userId', 'firstName lastName loginName')
+            .populate('userId', 'firstName lastName loginName avatar')
             .sort({ createdAt: -1 })
             .skip((Number(page) - 1) * Number(limit))
             .limit(Number(limit))

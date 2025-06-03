@@ -131,7 +131,7 @@ export const getPostByCondition = async (req: Request, res: Response) => {
 
         // Thực hiện query với populate author info
         const posts = await Post.find(filter)
-            .populate('userId', 'firstName lastName loginName') // Lấy thông tin author
+            .populate('userId', 'firstName lastName loginName avatar') // Lấy thông tin author
             .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo mới nhất
             .skip(skip)
             .limit(limitNum)

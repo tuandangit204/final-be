@@ -35,5 +35,6 @@ export const createUserSchema = Joi.object({
     lastName: Joi.string().min(1).max(50).required(),
     description: Joi.string().max(500).optional().allow(''),
     location: Joi.string().max(100).optional().allow(''),
-    occupation: Joi.string().max(100).optional().allow('')
+    occupation: Joi.string().max(100).optional().allow(''),
+    avatar: Joi.string().uri().optional().allow('')
 })

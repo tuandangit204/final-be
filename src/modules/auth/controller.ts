@@ -224,7 +224,7 @@ export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { token, loginName, password, firstName, lastName, description, location, occupation } = req.body
+        const { token, loginName, password, firstName, lastName, description, location, occupation, avatar } = req.body
 
         const tokenDoc = await VerifyToken.findOne({ token })
 
@@ -256,7 +256,8 @@ export const createUser = async (req: Request, res: Response) => {
             lastName,
             description,
             location,
-            occupation
+            occupation,
+            avatar
         })
 
         await newUser.save()
