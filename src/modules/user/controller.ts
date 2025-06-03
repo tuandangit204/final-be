@@ -143,7 +143,7 @@ export const getAllCommentByUserId = async (req: Request, res: Response) => {
         }
 
         const comments = await Comment.find({ userId })
-            .populate('postId', 'title imageUrl _id')
+            .populate('postId')
             .sort({ createdAt: -1 })
             .skip((Number(page) - 1) * Number(limit))
             .limit(Number(limit))
