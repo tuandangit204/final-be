@@ -192,10 +192,12 @@ export const likePost = async (req: Request, res: Response) => {
             })
         }
 
+        const updatedPost = await Post.findById(postId)
+
         res.status(200).json(
             getResponse({
                 message: 'Post liked successfully',
-                data: true
+                data: updatedPost?.toObject()
             })
         )
     } catch (e) {
@@ -234,10 +236,12 @@ export const unLikePost = async (req: Request, res: Response) => {
             })
         }
 
+        const updatedPost = await Post.findById(postId)
+
         res.status(200).json(
             getResponse({
                 message: 'Post unliked successfully',
-                data: true
+                data: updatedPost?.toObject()
             })
         )
     } catch (e) {
