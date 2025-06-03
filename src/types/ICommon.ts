@@ -3,3 +3,14 @@ export interface IResponse<T> {
     message: string
     data: T
 }
+
+export interface IUserPayload {
+    id: string
+    loginName: string
+}
+
+declare module 'express-serve-static-core' {
+    interface Request {
+        user?: IUserPayload
+    }
+}

@@ -1,94 +1,255 @@
 import { Request, Response } from 'express'
-import { getPostCollection } from '~/firebase/collections'
+import Post from '~/db/models/postModel'
 import { getResponse } from '~/utils/common'
-import { ICreatePostParams, IUpdatePostParams } from './type'
+import { ICreatePost } from './type'
+import omit from 'lodash/omit'
+import Comment from '~/db/models/commentModel'
 
-export const updatePost = async (req: Request<unknown, unknown, IUpdatePostParams>, res: Response) => {
-    const { id, ...params } = req.body
+export const createPost = async (req: Request<unknown, unknown, ICreatePost>, res: Response) => {
+    try {
+        const user = req.user
 
-    if (!id) {
-        res.status(400).json(
+        const { title, imageUrl } = req.body
+
+        const post = new Post({
+            title,
+            imageUrl,
+            userId: user?.id as string
+        })
+
+        await post.save()
+
+        res.status(201).json(
             getResponse({
-                data: null,
-                message: 'Post ID is required'
+                message: 'Post created successfully',
+                data: post.toJSON()
             })
         )
-
-        return
+    } catch (e) {
+        console.error('Error creating post:', e)
+        res.status(500).json({ message: 'Internal server error' })
     }
-
-    const docRef = getPostCollection().doc(id)
-    const docSnap = await docRef.get()
-
-    if (!docSnap.exists) {
-        res.status(404).json(
-            getResponse({
-                data: null,
-                message: 'Post not found'
-            })
-        )
-
-        return
-    }
-
-    const updatedAt = new Date()
-    await docRef.update({ ...params, updatedAt });
-
-    const newPostSnap = await docRef.get();
-    const post = newPostSnap.data()
-
-    res.status(200).json(
-        getResponse({
-            data: post,
-            message: 'Post updated successfully'
-        })
-    )
 }
 
-export const createPost = async (req: Request<unknown, unknown, ICreatePostParams>, res: Response) => {
-    const doc = getPostCollection().doc()
+export const findOne = async (req: Request, res: Response) => {
+    try {
+        const postId = req.params.id
 
-    const createdAt = new Date()
-    const updatedAt = new Date()
+        const post = await Post.findById(postId)
 
-    const post = {
-        ...req.body,
-        id: doc.id,
-        createdAt,
-        updatedAt
-    }
-
-    await doc.set(post)
-    res.status(201).json(
-        getResponse({
-            data: post,
-            message: 'Post created successfully'
-        })
-    )
-}
-
-export const getPosts = async (req: Request, res: Response) => {
-    const { page = 1, size = 10 } = req.query
-
-    const postCollection = getPostCollection();
-
-    const snapshot = await postCollection
-        .orderBy('createdAt', 'desc')
-        .limit(Number(size))
-        .offset(Number(+page - 1) * Number(size))
-        .get()
-
-    const posts = snapshot.docs.map((doc) => {
-        return {
-            id: doc.id,
-            ...doc.data()
+        if (!post) {
+            res.status(404).json(
+                getResponse({
+                    message: 'Post not found'
+                })
+            )
+            return
         }
-    })
 
-    res.status(200).json(
-        getResponse({
-            data: posts,
-            message: 'Posts fetched successfully'
+        res.status(200).json(
+            getResponse({
+                message: 'Post found successfully',
+                data: post.toJSON()
+            })
+        )
+    } catch (e) {
+        console.error('Error finding post:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
+}
+
+export const deletePost = async (req: Request, res: Response) => {
+    try {
+        const postId = req.params.id
+
+        const userId = req.user?.id
+        const post = await Post.findById(postId)
+
+        if (!post) {
+            res.status(404).json(
+                getResponse({
+                    message: 'Post not found'
+                })
+            )
+            return
+        }
+
+        if (String(post.userId) !== String(userId)) {
+            res.status(403).json(
+                getResponse({
+                    message: 'You do not have permission to delete this post'
+                })
+            )
+            return
+        }
+
+        await Post.deleteOne({ _id: postId })
+
+        await Comment.deleteMany({
+            postId: postId
         })
-    )
+
+        res.status(200).json(
+            getResponse({
+                message: 'Post deleted successfully',
+                data: true
+            })
+        )
+    } catch (e) {
+        console.error('Error deleting post:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
+}
+
+export const getPostByCondition = async (req: Request, res: Response) => {
+    try {
+        const { title, authorId, page = 1, limit = 1000 } = req.query
+
+        // Xây dựng filter object động
+        const filter: any = {}
+
+        if (title) {
+            filter.title = { $regex: title, $options: 'i' } // Tìm kiếm không phân biệt hoa thường
+        }
+
+        if (authorId) {
+            filter.userId = authorId
+        }
+
+        // Tính toán pagination
+        const pageNum = parseInt(page as string)
+        const limitNum = parseInt(limit as string)
+        const skip = (pageNum - 1) * limitNum
+
+        // Thực hiện query với populate author info
+        const posts = await Post.find(filter)
+            .populate('userId', 'firstName lastName loginName avatar') // Lấy thông tin author
+            .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo mới nhất
+            .skip(skip)
+            .limit(limitNum)
+
+        // Đếm tổng số documents để tính pagination
+        const total = await Post.countDocuments(filter)
+
+        res.status(200).json(
+            getResponse({
+                message: 'Posts retrieved successfully',
+                data: {
+                    data: posts.map((post) => {
+                        const postData = post.toJSON()
+
+                        return {
+                            ...omit(postData, ['userId']),
+                            author: postData.userId
+                        }
+                    }),
+                    total,
+                    page: pageNum,
+                    limit: limitNum
+                }
+            })
+        )
+    } catch (e) {
+        console.error('Error getting posts by condition:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
+}
+
+export const likePost = async (req: Request, res: Response) => {
+    try {
+        const postId = req.params.id
+        const userId = req.user?.id as string
+
+        const post = await Post.findById(postId)
+
+        if (!post) {
+            res.status(404).json(
+                getResponse({
+                    message: 'Post not found'
+                })
+            )
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const alreadyLiked = post?.likes?.includes(userId)
+
+        if (!alreadyLiked) {
+            await post?.updateOne({
+                $push: { likes: userId }
+            })
+        }
+
+        const updatedPost = await Post.findById(postId)
+
+        res.status(200).json(
+            getResponse({
+                message: 'Post liked successfully',
+                data: updatedPost?.toObject()
+            })
+        )
+    } catch (e) {
+        console.error('Error liking post:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
+}
+
+export const unLikePost = async (req: Request, res: Response) => {
+    try {
+        const postId = req.params.id
+        const userId = req.user?.id as string
+
+        const post = await Post.findById(postId)
+
+        if (!post) {
+            res.status(404).json(
+                getResponse({
+                    message: 'Post not found'
+                })
+            )
+            return
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const alreadyLiked = post?.likes?.includes(userId)
+
+        if (alreadyLiked) {
+            await post?.updateOne({
+                $pull: { likes: userId }
+            })
+        }
+
+        const updatedPost = await Post.findById(postId)
+
+        res.status(200).json(
+            getResponse({
+                message: 'Post unliked successfully',
+                data: updatedPost?.toObject()
+            })
+        )
+    } catch (e) {
+        console.error('Error unliking post:', e)
+        res.status(500).json(
+            getResponse({
+                message: 'Internal server error'
+            })
+        )
+    }
 }

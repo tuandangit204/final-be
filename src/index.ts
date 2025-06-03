@@ -1,17 +1,22 @@
 import express from 'express'
-import * as admin from 'firebase-admin'
+import dbConnect from './db/dbConnect'
+import authRoutes from './modules/auth/routes'
 import postRoutes from './modules/post/routes'
-import { firebaseAdminConfig } from './config/firebase'
+import userRoutes from './modules/user/routes'
+import cors from 'cors'
 
-const PORT = 8080
+const PORT = 8001
 
-admin.initializeApp({
-    credential: admin.credential.cert(firebaseAdminConfig as admin.ServiceAccount)
-})
+dbConnect()
 
 const app = express()
+
+app.use(cors())
+
 app.use(express.json())
 
+app.use('/auth', authRoutes)
+app.use('/user', userRoutes)
 app.use('/post', postRoutes)
 
 app.listen(PORT, () => {

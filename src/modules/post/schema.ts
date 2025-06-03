@@ -1,19 +1,17 @@
 import Joi from 'joi'
 
 export const createPostSchema = Joi.object({
-    title: Joi.string().min(3).max(100).required(),
-    author: Joi.string().required(),
-    content: Joi.string().min(10).max(5000).required()
+    title: Joi.string().required().max(100).min(3),
+    imageUrl: Joi.string().required().uri()
 })
 
-export const getPostsSchema = Joi.object({
-    page: Joi.number().integer().min(1).default(1),
-    size: Joi.number().integer().min(1).max(100).default(10)
+export const findOnePostSchema = Joi.object({
+    id: Joi.string().required().id()
 })
 
-export const updatePostSchema = Joi.object({
-    id: Joi.string().required(),
-    title: Joi.string().min(3).max(100).optional(),
-    author: Joi.string().optional(),
-    content: Joi.string().min(10).max(5000).optional()
+export const getPostByConditionSchema = Joi.object({
+    title: Joi.string().optional().max(100),
+    authorId: Joi.string().optional().id(),
+    page: Joi.number().optional().default(1),
+    limit: Joi.number().optional().default(1000)
 })

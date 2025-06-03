@@ -1,12 +1,18 @@
 import { Router } from 'express'
-import { validateBody, validateQuery } from '~/middlewares/validation'
-import { createPostSchema, getPostsSchema, updatePostSchema } from './schema'
-import { createPost, getPosts, updatePost } from './controller'
+import { authentication } from '~/middlewares/auth'
+import { validateBody, validateParams } from '~/middlewares/validation'
+import commentRoutes from '../comment/routes'
+import { createPost, deletePost, findOne, getPostByCondition, likePost, unLikePost } from './controller'
+import { createPostSchema, findOnePostSchema } from './schema'
 
 const postRoutes = Router()
 
-postRoutes.post('/', validateBody(createPostSchema), createPost)
-postRoutes.put('/', validateBody(updatePostSchema), updatePost)
-postRoutes.get('/', validateQuery(getPostsSchema), getPosts)
+postRoutes.get('/', authentication, getPostByCondition)
+postRoutes.post('/', authentication, validateBody(createPostSchema), createPost)
+postRoutes.get('/:id', authentication, validateParams(findOnePostSchema), findOne)
+postRoutes.delete('/:id', authentication, deletePost)
+postRoutes.post('/:id/like', authentication, validateParams(findOnePostSchema), likePost)
+postRoutes.delete('/:id/like', authentication, validateParams(findOnePostSchema), unLikePost)
+postRoutes.use('/:id', authentication, validateParams(findOnePostSchema), commentRoutes)
 
 export default postRoutes
