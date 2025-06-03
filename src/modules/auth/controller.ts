@@ -167,6 +167,8 @@ export const getUserInfo = async (req: Request, res: Response) => {
 
 export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
     try {
+        const callbackURL = req.get('origin') ?? process.env.FE_APP_URL
+
         const { email } = req.body
 
         const user = await User.findOne({ email })
@@ -199,7 +201,7 @@ export const sendVerifyEmailHandler = async (req: Request, res: Response) => {
             await verifyTokenDoc.save()
         }
 
-        const verifyLink = `${process.env.FE_APP_URL}/auth/register/create?token=${verifyToken}`
+        const verifyLink = `${callbackURL}/auth/register/create?token=${verifyToken}`
 
         await sendVerifyEmail({
             email,
